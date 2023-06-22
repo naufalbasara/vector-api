@@ -4,7 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from api.models import Product
 from api.serializers import ProductSerializer
-
+from email.message import EmailMessage
+import smtplib
 
 class ProductList(generics.ListAPIView):
     queryset = Product.objects.all()
@@ -45,6 +46,29 @@ def handling_data(request):
             return Response({"Status": status.HTTP_201_CREATED, "Message":f'Product have been created.'})
         return Response({"Status": status.HTTP_400_BAD_REQUEST, "Message":f'Bad data.'})
     
+
+def send_email(request):
+    request = request.GET
+    name = request['name']
+    email_address = request['email_address']
+    subject = request['subject']
+    req_message = request['message']
+
+    message = EmailMessage()
+    message.add_header("From", email_address)
+    message.add_header("To", 'vectormotorsindonesia@gmail.com')
+    message.add_header("Subject", subject)
+    message.set_content(req_message)
+
+    try:
+        mail_server = smtplib.SMTP_SSL('smtp.gmail.com')
+        mail_server.send_message(message)
+        mail_server.quit()
+        return Response({"Status": status.HTTP_200_OK})
+    except:
+        return Response({"Status": status.HTTP_400_BAD_REQUEST})
+
+
 @api_view(['GET'])
 def download_product_list(request):
     return
